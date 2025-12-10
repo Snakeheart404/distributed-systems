@@ -1,0 +1,82 @@
+# Envoy bootstrap configuration (static mode)
+static_resources:
+  listeners:
+    - name: listener_grpc
+      address:
+        socket_address:
+          address: 0.0.0.0
+          port_value: 50051
+      filter_chains:
+        - filters:
+            - name: envoy.filters.network.http_connection_manager
+              typed_config:
+                "@type": type.googleapis.com/envoy.extensions.filters.network.http_connection_manager.v3.HttpConnectionManager
+                codec_type: AUTO
+                stat_prefix: grpc_listener
+                route_config:
+                  name: local_route
+                  virtual_hosts:
+                    - name: dispatcher_vhost
+                      domains: ["*"]
+                      routes:
+                        - match:
+                            prefix: "/"
+                          route:
+                            cluster: dispatcher_cluster
+                            timeout: 10s
+                            retry_policy:
+                              retry_on: "5xx,connect-failure,refused-stream"
+                              num_retries: 2
+                              per_try_timeout: 3s
+                http_filters:
+                  - name: envoy.filters.http.router
+                    typed_config:
+                      "@type": type.googleapis.com/envoy.extensions.filters.http.router.v3.Router
+
+
+
+                access_log:
+                  - name: envoy.access_loggers.stdout
+                    typed_config:
+                      "@type": type.googleapis.com/envoy.extensions.access_loggers.stream.v3.StdoutAccessLog
+                      log_format:
+                        text_format: "[%START_TIME%] \"%REQ(:METHOD)% %REQ(X-ENVOY-ORIGINAL-PATH?:PATH)%\" %RESPONSE_CODE% %RESPONSE_FLAGS% %BYTES_SENT%\n"
+
+  clusters:
+    - name: dispatcher_cluster
+      connect_timeout: 1s
+      type: STRICT_DNS
+      lb_policy: ROUND_ROBIN
+      http2_protocol_options: {}
+
+      health_checks:
+        - timeout: 1s
+          interval: 5s
+          unhealthy_threshold: 3
+          healthy_threshold: 2
+          tcp_health_check: {}
+
+      circuit_breakers:
+        thresholds:
+          - priority: DEFAULT
+            max_connections: 1000
+            max_pending_requests: 1000
+            max_requests: 1000
+            max_retries: 3
+
+      load_assignment:
+        cluster_name: dispatcher_cluster
+        endpoints:
+          - lb_endpoints:
+              - endpoint:
+                  address:
+                    socket_address:
+                      address: dispatcher
+                      port_value: 50051
+
+admin:
+  access_log_path: /tmp/envoy_admin_access.log
+  address:
+    socket_address:
+      address: 0.0.0.0
+      port_value: 9901

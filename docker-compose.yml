@@ -1,0 +1,61 @@
+version: "3.9"
+
+services:
+  gateway:
+    build:
+      context: ./gateway
+    container_name: gateway
+    ports:
+      - "8000:8000"
+    environment:
+      DISPATCHER_HOST: envoy
+      DISPATCHER_PORT: 50051
+    depends_on:
+      - envoy
+    networks:
+      - app_net
+
+
+
+  envoy:
+    image: envoyproxy/envoy:v1.32.6
+    container_name: envoy
+    volumes:
+      - ./envoy/envoy.yaml:/etc/envoy/envoy.yaml:ro
+    command: ["envoy", "-c", "/etc/envoy/envoy.yaml", "--log-level", "info"]
+    ports:
+      - "50052:50051"
+      - "9901:9901"
+    depends_on:
+      - dispatcher
+    networks:
+      - app_net
+
+
+  dispatcher:
+    build:
+      context: ./dispatcher
+    container_name: dispatcher
+    ports:
+      - "50053:50051"
+    environment:
+      WORKER_HOST: worker
+      WORKER_PORT: 6000
+    depends_on:
+      - worker
+    networks:
+      - app_net
+
+
+  worker:
+    build:
+      context: ./worker
+    container_name: worker
+    expose:
+      - "50052"
+    networks:
+      - app_net
+
+networks:
+  app_net:
+    driver: bridge
