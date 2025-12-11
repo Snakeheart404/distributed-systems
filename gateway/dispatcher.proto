@@ -1,0 +1,38 @@
+syntax = "proto3";
+
+package dispatcher;
+
+message DispatchNotificationDto {
+  string message = 1;
+  int64 sentAt = 2; // unix timestamp ms
+}
+
+message WorkerRequestDto {
+  string message = 1;
+  int64 sentAt = 2;
+  string notificationId = 3;
+  int64 dispatcherStartedAt = 4;
+}
+
+message WorkerResponseDto {
+  bool success = 1;
+  string notificationId = 2;
+  int64 processedAt = 3;
+  int64 workerProcessingMs = 4;
+}
+
+message DispatchResponse {
+  bool success = 1;
+  string notificationId = 2;
+  int64 dispatcherProcessingMs = 3;
+  int64 workerProcessingMs = 4;
+  int64 processedAt = 5;
+}
+
+service DispatcherService {
+  rpc DispatchNotification(DispatchNotificationDto) returns (DispatchResponse);
+}
+
+service WorkerService {
+  rpc ProcessNotification(WorkerRequestDto) returns (WorkerResponseDto);
+}
