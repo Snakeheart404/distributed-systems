@@ -8,8 +8,10 @@ services:
     ports:
       - "8000:8000"
     environment:
-      DISPATCHER_HOST: envoy
-      DISPATCHER_PORT: 50051
+      GATEWAY_API_KEY: "client-secret-key"
+      DISPATCHER_PROXY_HOST: envoy
+      DISPATCHER_PROXY_PORT: "50051"
+      DISPATCHER_API_KEY: "dispatcher-secret-key"
     depends_on:
       - envoy
     networks:
@@ -24,10 +26,12 @@ services:
       - ./envoy/envoy.yaml:/etc/envoy/envoy.yaml:ro
     command: ["envoy", "-c", "/etc/envoy/envoy.yaml", "--log-level", "info"]
     ports:
-      - "50052:50051"
-      - "9901:9901"
+      - "50051:50051"   # Gateway - Envoy - Dispatcher
+      - "50052:50052"   # Dispatcher - Envoy - Worker
+      - "9901:9901"     # admin UI
     depends_on:
       - dispatcher
+      - worker
     networks:
       - app_net
 
@@ -36,11 +40,15 @@ services:
     build:
       context: ./dispatcher
     container_name: dispatcher
-    ports:
-      - "50053:50051"
     environment:
-      WORKER_HOST: worker
-      WORKER_PORT: 6000
+      DISPATCHER_PORT: "50051"
+      DISPATCHER_API_KEY: "dispatcher-secret-key"
+      WORKER_PROXY_HOST: envoy
+      WORKER_PROXY_PORT: "50052"
+      WORKER_API_KEY: "worker-secret-key"
+      DISPATCHER_LOG: "/logs/dispatcher_logs.jsonl"
+    expose:
+      - "50051"
     depends_on:
       - worker
     networks:
@@ -51,8 +59,20 @@ services:
     build:
       context: ./worker
     container_name: worker
+    environment:
+      WORKER_PORT: "50052"
+      WORKER_API_KEY: "worker-secret-key"
+      WORKER_LOG: "/logs/worker_logs.jsonl"
     expose:
       - "50052"
+    networks:
+      - app_net
+
+  logs:
+    image: busybox
+    command: ["sh", "-c", "mkdir -p /logs && sleep 3600"]
+    volumes:
+      - ./logs:/logs
     networks:
       - app_net
 
