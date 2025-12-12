@@ -51,6 +51,8 @@ services:
       - "50051"
     depends_on:
       - worker
+    volumes:
+      - ./logs:/logs
     networks:
       - app_net
 
@@ -65,12 +67,6 @@ services:
       WORKER_LOG: "/logs/worker_logs.jsonl"
     expose:
       - "50052"
-    networks:
-      - app_net
-
-  logs:
-    image: busybox
-    command: ["sh", "-c", "mkdir -p /logs && sleep 3600"]
     volumes:
       - ./logs:/logs
     networks:

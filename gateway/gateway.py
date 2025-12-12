@@ -9,10 +9,10 @@ import dispatcher_pb2_grpc
 
 app = FastAPI()
 
-GATEWAY_API_KEY = os.getenv("GATEWAY_API_KEY", "client-secret-key")  # ключ що має надсилати клієнт
+GATEWAY_API_KEY = os.getenv("GATEWAY_API_KEY", "client-secret-key")
 DISPATCHER_PROXY_HOST = os.getenv("DISPATCHER_PROXY_HOST", "envoy")
 DISPATCHER_PROXY_PORT = os.getenv("DISPATCHER_PROXY_PORT", "50051")
-DISPATCHER_API_KEY = os.getenv("DISPATCHER_API_KEY", "dispatcher-secret-key")  # ключ, який gateway відправляє dispatcher
+DISPATCHER_API_KEY = os.getenv("DISPATCHER_API_KEY", "dispatcher-secret-key")
 
 channel = grpc.insecure_channel(f"{DISPATCHER_PROXY_HOST}:{DISPATCHER_PROXY_PORT}")
 dispatcher_stub = dispatcher_pb2_grpc.DispatcherServiceStub(channel)
