@@ -1,17 +1,3 @@
-{"timestamp": 1765636565.20872, "notificationId": "22c64252-132b-46df-a87e-31de9280affd", "total_time_ms": 224, "workerProcessingMs": 1}
-{"timestamp": 1765636617.88868, "notificationId": "f6e65e1d-1ef8-4cda-971a-27fdf1984c6d", "total_time_ms": 140, "workerProcessingMs": 1}
-{"notificationId": "59240cbe-4fff-4016-9293-80894cb20463", "mode": "async", "priority": "normal", "dispatcherProcessingMs": 54, "workerProcessingMs": 7}
-{"notificationId": "5c35b0c8-5cd7-4b64-a931-1af43782cb29", "mode": "async", "priority": "normal", "dispatcherProcessingMs": 53, "workerProcessingMs": 3}
-{"notificationId": "0e6858dd-4b2c-46c7-87ce-3654f43a2d49", "mode": "async", "priority": "normal", "dispatcherProcessingMs": 51, "workerProcessingMs": 4}
-{"notificationId": "a5ed99e7-62c8-4504-a89c-06b55c523a82", "mode": "async", "priority": "normal", "dispatcherProcessingMs": 51, "workerProcessingMs": 8}
-{"notificationId": "1da5d41c-8c0a-45c0-9602-df0057f30a69", "mode": "async", "priority": "high", "dispatcherProcessingMs": 53, "workerProcessingMs": 4}
-{"notificationId": "cd702c85-be48-49e7-ad13-098493ba05f3", "mode": "async", "priority": "normal", "dispatcherProcessingMs": 52, "workerProcessingMs": 8}
-{"notificationId": "f7c9ea63-d7b3-46f1-aba6-73190727a07c", "mode": "async", "priority": "high", "dispatcherProcessingMs": 103, "workerProcessingMs": 6}
-{"notificationId": "7bb78b3f-8056-4c48-b104-f03733991799", "mode": "async", "priority": "normal", "dispatcherProcessingMs": 53, "workerProcessingMs": 4}
-{"notificationId": "64540a03-f737-4e1c-9c64-e81ffc22c5b2", "mode": "async", "priority": "high", "dispatcherProcessingMs": 207, "workerProcessingMs": 8}
-{"notificationId": "265387ae-6bf2-46eb-8486-2a5e9b1c7ce0", "mode": "async", "priority": "normal", "dispatcherProcessingMs": 103, "workerProcessingMs": 7}
-{"notificationId": "32c66b7b-6cca-4a1d-8f92-20e0eef27a96", "mode": "async", "priority": "normal", "dispatcherProcessingMs": 52, "workerProcessingMs": 9}
-{"notificationId": "2d690097-f38d-43ef-9cd8-7954165f6ecf", "mode": "async", "priority": "normal", "dispatcherProcessingMs": 52, "workerProcessingMs": 8}
-{"notificationId": "82c1057a-281e-443c-9e0f-b7035976a5f1", "mode": "async", "priority": "high", "dispatcherProcessingMs": 155, "workerProcessingMs": 7}
-{"notificationId": "f6063126-a6ef-4a67-8884-c0d8d8bbcb45", "mode": "async", "priority": "high", "dispatcherProcessingMs": 207, "workerProcessingMs": 6}
-{"notificationId": "7b763c53-b7b9-4366-9f16-2a83024a4ba8", "mode": "async", "priority": "high", "dispatcherProcessingMs": 103, "workerProcessingMs": 4}
+{"notificationId": "13ce4d35-e86b-4aa2-82f5-4b3b848ce5a1", "mode": "async", "priority": "normal", "dispatcherProcessingMs": 4571, "workerProcessingMs": 4549}
+{"notificationId": "ff0bc2a9-69ae-4a5b-9c12-44ac7f49c2a4", "mode": "async", "priority": "high", "dispatcherProcessingMs": 6225, "workerProcessingMs": 4501}
+{"notificationId": "7e050229-c7ed-4456-8d26-90efd618ad9e", "mode": "async", "priority": "normal", "dispatcherProcessingMs": 12496, "workerProcessingMs": 5074}

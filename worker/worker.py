@@ -64,10 +64,10 @@ class WorkerService(dispatcher_pb2_grpc.WorkerServiceServicer):
         if WORKER_API_KEY and key != WORKER_API_KEY:
             context.abort(grpc.StatusCode.UNAUTHENTICATED, "Invalid API key for worker")
 
-        delay = random.randint (0, 500) / 1000.0
-        time.sleep (delay)
+        #delay = random.randint (0, 500) / 1000.0
+        #time.sleep (delay)
 
-        _, processing_ms = do_work (10_000)
+        _, processing_ms = do_work (90000000)
         processed_at = int (time.time () * 1000)
 
         log_worker({
@@ -85,7 +85,7 @@ class WorkerService(dispatcher_pb2_grpc.WorkerServiceServicer):
         )
 
 def handle_kafka_message(msg: dict, topic: str):
-    _, processing_ms = do_work(msg.get("n", 50_000))
+    _, processing_ms = do_work(90000000)
     processed_at = int(time.time() * 1000)
 
     reply = {
@@ -110,17 +110,15 @@ def kafka_loop():
     print("Kafka worker started")
 
     while True:
-        high_msgs = high_consumer.poll(timeout_ms=100)
+        high_msgs = high_consumer.poll(timeout_ms=20, max_records=1)
         if high_msgs:
             for _, records in high_msgs.items():
-                for r in records:
-                    handle_kafka_message(r.value, HIGH_TOPIC)
+                handle_kafka_message(records[0].value, HIGH_TOPIC)
             continue
 
-        normal_msgs = normal_consumer.poll(timeout_ms=200)
+        normal_msgs = normal_consumer.poll(timeout_ms=30, max_records=1)
         for _, records in normal_msgs.items():
-            for r in records:
-                handle_kafka_message(r.value, NORMAL_TOPIC)
+            handle_kafka_message(records[0].value, NORMAL_TOPIC)
 
 def serve():
     server = grpc.server(futures.ThreadPoolExecutor(max_workers=10))

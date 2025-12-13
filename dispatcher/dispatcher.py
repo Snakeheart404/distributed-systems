@@ -129,7 +129,7 @@ class DispatcherService (dispatcher_pb2_grpc.DispatcherServiceServicer):
             "sentAt": request.sentAt,
         })
 
-        timeout = 30.0
+        timeout = 200.0
         waited = 0.0
         poll = 0.05
 
