@@ -12,8 +12,13 @@ services:
       DISPATCHER_PROXY_HOST: envoy
       DISPATCHER_PROXY_PORT: "50051"
       DISPATCHER_API_KEY: "dispatcher-secret-key"
+      RABBIT_HOST: rabbitmq
+      TASK_QUEUE: tasks_queue
     depends_on:
-      - envoy
+      rabbitmq:
+        condition: service_healthy
+      envoy:
+        condition: service_started
     networks:
       - app_net
 
@@ -56,6 +61,21 @@ services:
     networks:
       - app_net
 
+  async_dispatcher:
+    build:
+      context: ./async_dispatcher
+    container_name: async_dispatcher
+    environment:
+      RABBIT_HOST: rabbitmq
+      TASK_QUEUE: tasks_queue
+      DISPATCHER_LOG: "/logs/dispatcher_async_logs.jsonl"
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+    networks:
+      - app_net
+    volumes:
+      - ./logs:/logs
 
   worker:
     build:
@@ -69,6 +89,39 @@ services:
       - "50052"
     volumes:
       - ./logs:/logs
+    networks:
+      - app_net
+
+  async_worker:
+    build:
+      context: ./async_worker
+    container_name: worker_async
+    environment:
+      RABBIT_HOST: rabbitmq
+      TASK_QUEUE: tasks_queue
+      WORKER_LOG: "/logs/worker_async_logs.jsonl"
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+    networks:
+      - app_net
+    volumes:
+      - ./logs:/logs
+
+  rabbitmq:
+    image: rabbitmq:3.11-management
+    container_name: rabbitmq
+    environment:
+      RABBITMQ_DEFAULT_USER: guest
+      RABBITMQ_DEFAULT_PASS: guest
+    ports:
+      - "5672:5672"     # AMQP
+      - "15672:15672"   # Management UI
+    healthcheck:
+      test: [ "CMD", "rabbitmqctl", "status" ]
+      interval: 5s
+      timeout: 5s
+      retries: 10
     networks:
       - app_net
 

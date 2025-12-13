@@ -3,3 +3,4 @@ uvicorn
 grpcio
 grpcio-tools
 pydantic
+pika
