@@ -3,4 +3,4 @@ uvicorn
 grpcio
 grpcio-tools
 pydantic
-pika
+kafka-python

@@ -1,6 +1,43 @@
 version: "3.9"
 
 services:
+  zookeeper:
+    image: confluentinc/cp-zookeeper:7.5.0
+    container_name: zookeeper
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_TICK_TIME: 2000
+    networks:
+      - app_net
+
+  kafka:
+    image: confluentinc/cp-kafka:7.5.0
+    container_name: kafka
+    depends_on:
+      - zookeeper
+    ports:
+      - "9092:9092"
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+
+      KAFKA_LISTENERS: PLAINTEXT://0.0.0.0:9092
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092
+
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
+
+      KAFKA_AUTO_CREATE_TOPICS_ENABLE: "true"
+    healthcheck:
+      test: [ "CMD", "kafka-broker-api-versions", "--bootstrap-server", "localhost:9092" ]
+      interval: 10s
+      timeout: 10s
+      retries: 10
+      start_period: 30s
+    networks:
+      - app_net
+
   gateway:
     build:
       context: ./gateway
@@ -12,13 +49,8 @@ services:
       DISPATCHER_PROXY_HOST: envoy
       DISPATCHER_PROXY_PORT: "50051"
       DISPATCHER_API_KEY: "dispatcher-secret-key"
-      RABBIT_HOST: rabbitmq
-      TASK_QUEUE: tasks_queue
     depends_on:
-      rabbitmq:
-        condition: service_healthy
-      envoy:
-        condition: service_started
+      - envoy
     networks:
       - app_net
 
@@ -52,30 +84,16 @@ services:
       WORKER_PROXY_PORT: "50052"
       WORKER_API_KEY: "worker-secret-key"
       DISPATCHER_LOG: "/logs/dispatcher_logs.jsonl"
+      KAFKA_BOOTSTRAP_SERVERS: kafka:9092
     expose:
       - "50051"
     depends_on:
-      - worker
-    volumes:
-      - ./logs:/logs
-    networks:
-      - app_net
-
-  async_dispatcher:
-    build:
-      context: ./async_dispatcher
-    container_name: async_dispatcher
-    environment:
-      RABBIT_HOST: rabbitmq
-      TASK_QUEUE: tasks_queue
-      DISPATCHER_LOG: "/logs/dispatcher_async_logs.jsonl"
-    depends_on:
-      rabbitmq:
+      kafka:
         condition: service_healthy
-    networks:
-      - app_net
     volumes:
       - ./logs:/logs
+    networks:
+      - app_net
 
   worker:
     build:
@@ -84,44 +102,15 @@ services:
     environment:
       WORKER_PORT: "50052"
       WORKER_API_KEY: "worker-secret-key"
+      KAFKA_BOOTSTRAP_SERVERS: kafka:9092
       WORKER_LOG: "/logs/worker_logs.jsonl"
     expose:
       - "50052"
-    volumes:
-      - ./logs:/logs
-    networks:
-      - app_net
-
-  async_worker:
-    build:
-      context: ./async_worker
-    container_name: worker_async
-    environment:
-      RABBIT_HOST: rabbitmq
-      TASK_QUEUE: tasks_queue
-      WORKER_LOG: "/logs/worker_async_logs.jsonl"
     depends_on:
-      rabbitmq:
+      kafka:
         condition: service_healthy
-    networks:
-      - app_net
     volumes:
       - ./logs:/logs
-
-  rabbitmq:
-    image: rabbitmq:3.11-management
-    container_name: rabbitmq
-    environment:
-      RABBITMQ_DEFAULT_USER: guest
-      RABBITMQ_DEFAULT_PASS: guest
-    ports:
-      - "5672:5672"     # AMQP
-      - "15672:15672"   # Management UI
-    healthcheck:
-      test: [ "CMD", "rabbitmqctl", "status" ]
-      interval: 5s
-      timeout: 5s
-      retries: 10
     networks:
       - app_net
 

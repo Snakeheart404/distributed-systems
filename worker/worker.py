@@ -3,20 +3,59 @@ import random
 import grpc
 import os
 import json
+import threading
 from concurrent import futures
+
+from kafka import KafkaConsumer, KafkaProducer
 
 import dispatcher_pb2
 import dispatcher_pb2_grpc
 
+
+KAFKA_BOOTSTRAP = os.getenv("KAFKA_BOOTSTRAP_SERVERS", "kafka:9092")
+GROUP_ID = os.getenv("WORKER_GROUP_ID", "workers")
+
+HIGH_TOPIC = "notifications.high"
+NORMAL_TOPIC = "notifications.normal"
+REPLY_TOPIC = "notifications.reply"
+
 WORKER_API_KEY = os.getenv("WORKER_API_KEY", "worker-secret-key")
 LOGFILE = os.getenv("WORKER_LOG", "worker_logs.jsonl")
 
-log_dir = os.path.dirname(LOGFILE) or "."
-os.makedirs(log_dir, exist_ok=True)
+os.makedirs(os.path.dirname(LOGFILE), exist_ok=True)
+producer = KafkaProducer(
+    bootstrap_servers=KAFKA_BOOTSTRAP,
+    value_serializer=lambda v: json.dumps(v).encode("utf-8"),
+)
 
+high_consumer = KafkaConsumer(
+    HIGH_TOPIC,
+    bootstrap_servers=KAFKA_BOOTSTRAP,
+    group_id=GROUP_ID,
+    auto_offset_reset="earliest",
+    enable_auto_commit=True,
+    value_deserializer=lambda v: json.loads(v.decode("utf-8")),
+)
+
+normal_consumer = KafkaConsumer(
+    NORMAL_TOPIC,
+    bootstrap_servers=KAFKA_BOOTSTRAP,
+    group_id=GROUP_ID,
+    auto_offset_reset="earliest",
+    enable_auto_commit=True,
+    value_deserializer=lambda v: json.loads(v.decode("utf-8")),
+)
 def log_worker(entry: dict):
     with open(LOGFILE, "a", encoding="utf-8") as f:
         f.write(json.dumps(entry, ensure_ascii=False) + "\n")
+
+def do_work(n: int = 50_000):
+    start = time.perf_counter()
+    acc = 0
+    for i in range(1, n + 1):
+        acc += i * i
+    end = time.perf_counter()
+    return acc, int((end - start) * 1000)
 
 class WorkerService(dispatcher_pb2_grpc.WorkerServiceServicer):
     def ProcessNotification(self, request, context):
@@ -25,17 +64,16 @@ class WorkerService(dispatcher_pb2_grpc.WorkerServiceServicer):
         if WORKER_API_KEY and key != WORKER_API_KEY:
             context.abort(grpc.StatusCode.UNAUTHENTICATED, "Invalid API key for worker")
 
-        start = time.perf_counter()
-        delay = random.randint(0, 500) / 1000.0
-        time.sleep(delay)
-        end = time.perf_counter()
-        worker_processing_ms = int((end - start) * 1000)
+        delay = random.randint (0, 500) / 1000.0
+        time.sleep (delay)
 
-        processed_at = int(time.time() * 1000)
+        _, processing_ms = do_work (10_000)
+        processed_at = int (time.time () * 1000)
+
         log_worker({
             "timestamp": time.time(),
             "notificationId": request.notificationId,
-            "workerProcessingMs": worker_processing_ms,
+            "workerProcessingMs": processing_ms,
             "processedAt": processed_at
         })
 
@@ -43,9 +81,46 @@ class WorkerService(dispatcher_pb2_grpc.WorkerServiceServicer):
             success=True,
             notificationId=request.notificationId,
             processedAt=processed_at,
-            workerProcessingMs=worker_processing_ms
+            workerProcessingMs=processing_ms
         )
 
+def handle_kafka_message(msg: dict, topic: str):
+    _, processing_ms = do_work(msg.get("n", 50_000))
+    processed_at = int(time.time() * 1000)
+
+    reply = {
+        "correlationId": msg["correlationId"],
+        "notificationId": msg["notificationId"],
+        "workerProcessingMs": processing_ms,
+        "processedAt": processed_at,
+        "result": "ok"
+    }
+
+    producer.send(REPLY_TOPIC, reply)
+
+    log_worker({
+        "mode": "kafka",
+        "notificationId": msg["notificationId"],
+        "processedAt": processed_at,
+        "workerProcessingMs": processing_ms,
+        "topic": topic
+    })
+
+def kafka_loop():
+    print("Kafka worker started")
+
+    while True:
+        high_msgs = high_consumer.poll(timeout_ms=100)
+        if high_msgs:
+            for _, records in high_msgs.items():
+                for r in records:
+                    handle_kafka_message(r.value, HIGH_TOPIC)
+            continue
+
+        normal_msgs = normal_consumer.poll(timeout_ms=200)
+        for _, records in normal_msgs.items():
+            for r in records:
+                handle_kafka_message(r.value, NORMAL_TOPIC)
 
 def serve():
     server = grpc.server(futures.ThreadPoolExecutor(max_workers=10))
@@ -58,4 +133,5 @@ def serve():
 
 
 if __name__ == "__main__":
+    threading.Thread (target=kafka_loop, daemon=True).start ()
     serve()

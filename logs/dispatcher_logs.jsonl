@@ -1,9 +1,17 @@
-{"timestamp": 1765495816.7541478, "notificationId": "46bc3152-96e8-4da6-937e-572ae77367c5", "total_time_ms": 354, "workerProcessingMs": 314}
-{"timestamp": 1765496595.0189075, "notificationId": "ee70dc79-10c4-4bc1-8d17-a4ddd8001ec0", "total_time_ms": 77, "workerProcessingMs": 65}
-{"timestamp": 1765540969.8126662, "notificationId": "75cff770-c9b3-4311-a5be-5ed74fc52ebd", "total_time_ms": 151, "workerProcessingMs": 129}
-{"timestamp": 1765541281.7232106, "notificationId": "ad2d57c8-8671-417e-9664-4e34dad9a4d6", "total_time_ms": 413, "workerProcessingMs": 399}
-{"timestamp": 1765541300.4041324, "notificationId": "18a0fc18-0e8a-4b83-9dd3-3811fda0f7ed", "total_time_ms": 83, "workerProcessingMs": 71}
-{"timestamp": 1765557624.5152054, "notificationId": "c8e4cb6b-1430-418a-9524-82fe51271fa9", "total_time_ms": 59, "workerProcessingMs": 34}
-{"timestamp": 1765557834.49974, "notificationId": "982ac5ac-9ca8-41b0-b7c7-4a4fc3784ab8", "total_time_ms": 142, "workerProcessingMs": 131}
-{"timestamp": 1765557866.7081685, "notificationId": "29c807a5-a6b6-4e2c-862f-f3feb1b97fc1", "total_time_ms": 495, "workerProcessingMs": 482}
-{"timestamp": 1765558386.8946137, "notificationId": "5a498e16-00ad-4b24-8087-db40373fe0b7", "total_time_ms": 450, "workerProcessingMs": 435}
+{"timestamp": 1765636565.20872, "notificationId": "22c64252-132b-46df-a87e-31de9280affd", "total_time_ms": 224, "workerProcessingMs": 1}
+{"timestamp": 1765636617.88868, "notificationId": "f6e65e1d-1ef8-4cda-971a-27fdf1984c6d", "total_time_ms": 140, "workerProcessingMs": 1}
+{"notificationId": "59240cbe-4fff-4016-9293-80894cb20463", "mode": "async", "priority": "normal", "dispatcherProcessingMs": 54, "workerProcessingMs": 7}
+{"notificationId": "5c35b0c8-5cd7-4b64-a931-1af43782cb29", "mode": "async", "priority": "normal", "dispatcherProcessingMs": 53, "workerProcessingMs": 3}
+{"notificationId": "0e6858dd-4b2c-46c7-87ce-3654f43a2d49", "mode": "async", "priority": "normal", "dispatcherProcessingMs": 51, "workerProcessingMs": 4}
+{"notificationId": "a5ed99e7-62c8-4504-a89c-06b55c523a82", "mode": "async", "priority": "normal", "dispatcherProcessingMs": 51, "workerProcessingMs": 8}
+{"notificationId": "1da5d41c-8c0a-45c0-9602-df0057f30a69", "mode": "async", "priority": "high", "dispatcherProcessingMs": 53, "workerProcessingMs": 4}
+{"notificationId": "cd702c85-be48-49e7-ad13-098493ba05f3", "mode": "async", "priority": "normal", "dispatcherProcessingMs": 52, "workerProcessingMs": 8}
+{"notificationId": "f7c9ea63-d7b3-46f1-aba6-73190727a07c", "mode": "async", "priority": "high", "dispatcherProcessingMs": 103, "workerProcessingMs": 6}
+{"notificationId": "7bb78b3f-8056-4c48-b104-f03733991799", "mode": "async", "priority": "normal", "dispatcherProcessingMs": 53, "workerProcessingMs": 4}
+{"notificationId": "64540a03-f737-4e1c-9c64-e81ffc22c5b2", "mode": "async", "priority": "high", "dispatcherProcessingMs": 207, "workerProcessingMs": 8}
+{"notificationId": "265387ae-6bf2-46eb-8486-2a5e9b1c7ce0", "mode": "async", "priority": "normal", "dispatcherProcessingMs": 103, "workerProcessingMs": 7}
+{"notificationId": "32c66b7b-6cca-4a1d-8f92-20e0eef27a96", "mode": "async", "priority": "normal", "dispatcherProcessingMs": 52, "workerProcessingMs": 9}
+{"notificationId": "2d690097-f38d-43ef-9cd8-7954165f6ecf", "mode": "async", "priority": "normal", "dispatcherProcessingMs": 52, "workerProcessingMs": 8}
+{"notificationId": "82c1057a-281e-443c-9e0f-b7035976a5f1", "mode": "async", "priority": "high", "dispatcherProcessingMs": 155, "workerProcessingMs": 7}
+{"notificationId": "f6063126-a6ef-4a67-8884-c0d8d8bbcb45", "mode": "async", "priority": "high", "dispatcherProcessingMs": 207, "workerProcessingMs": 6}
+{"notificationId": "7b763c53-b7b9-4366-9f16-2a83024a4ba8", "mode": "async", "priority": "high", "dispatcherProcessingMs": 103, "workerProcessingMs": 4}
