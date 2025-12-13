@@ -3,6 +3,7 @@ from pydantic import BaseModel
 import os
 import time
 import grpc
+import redis
 import uuid
 
 import dispatcher_pb2
@@ -15,13 +16,16 @@ DISPATCHER_PROXY_HOST = os.getenv("DISPATCHER_PROXY_HOST", "envoy")
 DISPATCHER_PROXY_PORT = os.getenv("DISPATCHER_PROXY_PORT", "50051")
 DISPATCHER_API_KEY = os.getenv("DISPATCHER_API_KEY", "dispatcher-secret-key")
 
+REDIS_URL = os.getenv("REDIS_URL", "redis://redis:6379/0")
+redis_client = redis.Redis.from_url(REDIS_URL)
+
 channel = grpc.insecure_channel(f"{DISPATCHER_PROXY_HOST}:{DISPATCHER_PROXY_PORT}")
 dispatcher_stub = dispatcher_pb2_grpc.DispatcherServiceStub(channel)
 
 class NotificationRequest(BaseModel):
     message: str
     priority: str = "normal"
-    mode: str = "sync"
+    mode: str = "async"
 
 @app.post("/notifications", status_code=201)
 def create_notification(req: NotificationRequest, x_api_key: str = Header(None)):
@@ -50,3 +54,14 @@ def create_notification(req: NotificationRequest, x_api_key: str = Header(None))
         "workerProcessingMs": resp.workerProcessingMs,
         "processedAt": resp.processedAt
     }
+
+@app.get("/notifications/{notification_id}")
+def get_notification(notification_id: str, x_api_key: str = Header(None)):
+    if x_api_key != GATEWAY_API_KEY:
+        raise HTTPException(401, "Invalid API key")
+
+    data = redis_client.hgetall(f"notification:{notification_id}")
+    if not data:
+        raise HTTPException(404, "Not found")
+
+    return {k.decode(): v.decode() for k, v in data.items()}

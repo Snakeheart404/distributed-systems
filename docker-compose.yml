@@ -114,6 +114,31 @@ services:
     networks:
       - app_net
 
+  redis:
+    image: redis:7
+    container_name: redis
+    ports:
+      - "6379:6379"
+    networks:
+      - app_net
+
+  materializer:
+    build:
+      context: ./materializer
+    container_name: materializer
+    environment:
+      KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+      REDIS_URL: redis://redis:6379/0
+    depends_on:
+      kafka:
+        condition: service_healthy
+      redis:
+        condition: service_started
+    networks:
+      - app_net
+
+
+
 networks:
   app_net:
     driver: bridge

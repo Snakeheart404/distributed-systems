@@ -19,6 +19,8 @@ WORKER_API_KEY = os.getenv ("WORKER_API_KEY", "worker-secret-key")
 LOGFILE = os.getenv ("DISPATCHER_LOG", "dispatcher_logs.jsonl")
 
 KAFKA_BOOTSTRAP = os.getenv ("KAFKA_BOOTSTRAP_SERVERS", "kafka:9092")
+EVENTS_TOPIC = "events"
+REPLY_TOPIC = "notifications.reply"
 
 os.makedirs(os.path.dirname(LOGFILE), exist_ok=True)
 
@@ -33,8 +35,12 @@ producer = KafkaProducer (
     value_serializer=lambda v: json.dumps (v).encode ("utf-8"),
 )
 
+event_producer = KafkaProducer(
+    bootstrap_servers=KAFKA_BOOTSTRAP,
+    value_serializer=lambda v: json.dumps(v).encode("utf-8"),
+)
 reply_consumer = KafkaConsumer (
-    "notifications.reply",
+    REPLY_TOPIC,
     bootstrap_servers=KAFKA_BOOTSTRAP,
     value_deserializer=lambda v: json.loads (v.decode ("utf-8")),
     group_id="dispatcher-replies",
@@ -42,7 +48,6 @@ reply_consumer = KafkaConsumer (
 )
 
 pending_replies: Dict[str, dict] = {}
-
 
 def reply_listener():
     for msg in reply_consumer:
@@ -71,6 +76,15 @@ class DispatcherService (dispatcher_pb2_grpc.DispatcherServiceServicer):
         notification_id = str (uuid.uuid4 ())
         dispatcher_start = time.perf_counter ()
         dispatcher_start_ts = int (time.time () * 1000)
+
+        event_producer.send(EVENTS_TOPIC, {
+            "eventType": "NotificationCreated",
+            "notificationId": notification_id,
+            "message": request.message,
+            "priority": request.priority,
+            "mode": request.mode,
+            "timestamp": dispatcher_start_ts
+        })
         if request.mode == "sync":
             worker_req = dispatcher_pb2.WorkerRequestDto (
                 message=request.message,
@@ -96,6 +110,13 @@ class DispatcherService (dispatcher_pb2_grpc.DispatcherServiceServicer):
 
             dispatcher_end = time.perf_counter ()
             dispatcher_ms = int ((dispatcher_end - dispatcher_start) * 1000)
+
+            event_producer.send (EVENTS_TOPIC, {
+                "eventType": "NotificationProcessed",
+                "notificationId": notification_id,
+                "workerProcessingMs": worker_resp.workerProcessingMs,
+                "processedAt": worker_resp.processedAt
+            })
 
             log_dispatcher ({
                 "timestamp": time.time (),
@@ -137,6 +158,13 @@ class DispatcherService (dispatcher_pb2_grpc.DispatcherServiceServicer):
             if corr_id in pending_replies:
                 reply = pending_replies.pop (corr_id)
                 dispatcher_ms = int ((time.perf_counter () - dispatcher_start) * 1000)
+
+                event_producer.send (EVENTS_TOPIC, {
+                    "eventType": "NotificationProcessed",
+                    "notificationId": notification_id,
+                    "workerProcessingMs": reply["workerProcessingMs"],
+                    "processedAt": reply["processedAt"]
+                })
 
                 log_dispatcher ({
                     "notificationId": notification_id,

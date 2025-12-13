@@ -4,3 +4,4 @@ grpcio
 grpcio-tools
 pydantic
 kafka-python
+redis
