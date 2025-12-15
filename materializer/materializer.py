@@ -17,8 +17,6 @@ consumer = KafkaConsumer(
     auto_offset_reset="earliest",
 )
 
-print("Materializer started...")
-
 for msg in consumer:
     event = msg.value
     event_type = event["eventType"]

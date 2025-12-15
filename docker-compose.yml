@@ -137,6 +137,17 @@ services:
     networks:
       - app_net
 
+  process-manager:
+    build:
+      context: ./process_manager
+    container_name: process-manager
+    environment:
+      KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+    depends_on:
+      kafka:
+        condition: service_healthy
+    networks:
+      - app_net
 
 
 networks:

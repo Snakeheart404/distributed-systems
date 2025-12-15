@@ -23,6 +23,7 @@ WORKER_API_KEY = os.getenv("WORKER_API_KEY", "worker-secret-key")
 LOGFILE = os.getenv("WORKER_LOG", "worker_logs.jsonl")
 
 os.makedirs(os.path.dirname(LOGFILE), exist_ok=True)
+
 producer = KafkaProducer(
     bootstrap_servers=KAFKA_BOOTSTRAP,
     value_serializer=lambda v: json.dumps(v).encode("utf-8"),
@@ -67,7 +68,7 @@ class WorkerService(dispatcher_pb2_grpc.WorkerServiceServicer):
         #delay = random.randint (0, 500) / 1000.0
         #time.sleep (delay)
 
-        _, processing_ms = do_work (90000000)
+        _, processing_ms = do_work (900)
         processed_at = int (time.time () * 1000)
 
         log_worker({
@@ -85,7 +86,7 @@ class WorkerService(dispatcher_pb2_grpc.WorkerServiceServicer):
         )
 
 def handle_kafka_message(msg: dict, topic: str):
-    _, processing_ms = do_work(90000000)
+    _, processing_ms = do_work(900)
     processed_at = int(time.time() * 1000)
 
     reply = {

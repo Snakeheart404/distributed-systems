@@ -2,3 +2,17 @@
 {"mode": "kafka", "notificationId": "ff0bc2a9-69ae-4a5b-9c12-44ac7f49c2a4", "processedAt": 1765643256031, "workerProcessingMs": 4501, "topic": "notifications.high"}
 {"mode": "kafka", "notificationId": "7e050229-c7ed-4456-8d26-90efd618ad9e", "processedAt": 1765643261128, "workerProcessingMs": 5074, "topic": "notifications.normal"}
 {"mode": "kafka", "notificationId": "98d38440-7ab7-4864-8b20-6384ce95f1f8", "processedAt": 1765659881871, "workerProcessingMs": 9485, "topic": "notifications.normal"}
+{"mode": "kafka", "notificationId": "04273bfa-e5bd-4009-a4e8-9bc3b203569c", "processedAt": 1765762994347, "workerProcessingMs": 6941, "topic": "notifications.normal"}
+{"mode": "kafka", "notificationId": "73579bd3-300e-45df-b9ee-e547dcbea8ad", "processedAt": 1765763017392, "workerProcessingMs": 7482, "topic": "notifications.normal"}
+{"mode": "kafka", "notificationId": "95c17572-8cc0-4407-9371-cd348324172d", "processedAt": 1765764211927, "workerProcessingMs": 7197, "topic": "notifications.high"}
+{"mode": "kafka", "notificationId": "42a2ed5e-c6be-4cb6-bdc0-7c7b9d6b9140", "processedAt": 1765764620308, "workerProcessingMs": 17953, "topic": "notifications.normal"}
+{"timestamp": 1765764620.4033763, "notificationId": "42a2ed5e-c6be-4cb6-bdc0-7c7b9d6b9140", "workerProcessingMs": 18063, "processedAt": 1765764620403}
+{"mode": "kafka", "notificationId": "0ee8233a-3ece-42b6-bac2-d59e3031acd5", "processedAt": 1765764804625, "workerProcessingMs": 0, "topic": "notifications.normal"}
+{"mode": "kafka", "notificationId": "2172908e-e0e9-4454-9c67-e13ab974bde1", "processedAt": 1765764863465, "workerProcessingMs": 0, "topic": "notifications.normal"}
+{"timestamp": 1765764986.7754438, "notificationId": "0694c7ae-f1c0-44c3-b517-46d8bb8ba6ec", "workerProcessingMs": 0, "processedAt": 1765764986775}
+{"mode": "kafka", "notificationId": "0694c7ae-f1c0-44c3-b517-46d8bb8ba6ec", "processedAt": 1765764986798, "workerProcessingMs": 0, "topic": "notifications.normal"}
+{"mode": "kafka", "notificationId": "b9a9e0fe-26f2-438b-acb0-903ae32a1f14", "processedAt": 1765764994368, "workerProcessingMs": 0, "topic": "notifications.normal"}
+{"timestamp": 1765803828.1070344, "notificationId": "b17a8194-7425-4208-a36a-85bd24b1a50b", "workerProcessingMs": 0, "processedAt": 1765803828107}
+{"mode": "kafka", "notificationId": "1fa6c9b5-a586-4b9a-96bc-3398f7414794", "processedAt": 1765805063958, "workerProcessingMs": 0, "topic": "notifications.normal"}
+{"mode": "kafka", "notificationId": "8523ecf9-e1bc-4628-a379-a9c4db74a847", "processedAt": 1765805098342, "workerProcessingMs": 0, "topic": "notifications.high"}
+{"mode": "kafka", "notificationId": "947c1528-8ae1-4df3-8246-11920edd5ab1", "processedAt": 1765805216450, "workerProcessingMs": 0, "topic": "notifications.high"}

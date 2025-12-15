@@ -29,12 +29,6 @@ def log_dispatcher(entry: dict):
     with open (LOGFILE, "a", encoding="utf-8") as f:
         f.write (json.dumps (entry, ensure_ascii=False) + "\n")
 
-
-producer = KafkaProducer (
-    bootstrap_servers=KAFKA_BOOTSTRAP,
-    value_serializer=lambda v: json.dumps (v).encode ("utf-8"),
-)
-
 event_producer = KafkaProducer(
     bootstrap_servers=KAFKA_BOOTSTRAP,
     value_serializer=lambda v: json.dumps(v).encode("utf-8"),
@@ -74,17 +68,22 @@ class DispatcherService (dispatcher_pb2_grpc.DispatcherServiceServicer):
             context.abort (grpc.StatusCode.UNAUTHENTICATED, "Invalid API key for dispatcher")
 
         notification_id = str (uuid.uuid4 ())
+        correlation_id = str(uuid.uuid4())
+
         dispatcher_start = time.perf_counter ()
         dispatcher_start_ts = int (time.time () * 1000)
 
         event_producer.send(EVENTS_TOPIC, {
             "eventType": "NotificationCreated",
             "notificationId": notification_id,
+            "correlationId": correlation_id,
             "message": request.message,
             "priority": request.priority,
             "mode": request.mode,
             "timestamp": dispatcher_start_ts
         })
+        event_producer.flush()
+
         if request.mode == "sync":
             worker_req = dispatcher_pb2.WorkerRequestDto (
                 message=request.message,
@@ -135,33 +134,19 @@ class DispatcherService (dispatcher_pb2_grpc.DispatcherServiceServicer):
 
         # work with kafka
 
-        topic = (
-            "notifications.high"
-            if request.priority == "high"
-            else "notifications.normal"
-        )
-
-        corr_id = str (uuid.uuid4 ())
-
-        producer.send (topic, {
-            "correlationId": corr_id,
-            "notificationId": notification_id,
-            "message": request.message,
-            "sentAt": request.sentAt,
-        })
-
         timeout = 200.0
         waited = 0.0
         poll = 0.05
 
         while waited < timeout:
-            if corr_id in pending_replies:
-                reply = pending_replies.pop (corr_id)
+            if correlation_id in pending_replies:
+                reply = pending_replies.pop (correlation_id)
                 dispatcher_ms = int ((time.perf_counter () - dispatcher_start) * 1000)
 
                 event_producer.send (EVENTS_TOPIC, {
                     "eventType": "NotificationProcessed",
                     "notificationId": notification_id,
+                    "correlationId": correlation_id,
                     "workerProcessingMs": reply["workerProcessingMs"],
                     "processedAt": reply["processedAt"]
                 })
