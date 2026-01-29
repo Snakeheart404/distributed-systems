@@ -1,0 +1,155 @@
+version: "3.9"
+
+services:
+  zookeeper:
+    image: confluentinc/cp-zookeeper:7.5.0
+    container_name: zookeeper
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_TICK_TIME: 2000
+    networks:
+      - app_net
+
+  kafka:
+    image: confluentinc/cp-kafka:7.5.0
+    container_name: kafka
+    depends_on:
+      - zookeeper
+    ports:
+      - "9092:9092"
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+
+      KAFKA_LISTENERS: PLAINTEXT://0.0.0.0:9092
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092
+
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
+
+      KAFKA_AUTO_CREATE_TOPICS_ENABLE: "true"
+    healthcheck:
+      test: [ "CMD", "kafka-broker-api-versions", "--bootstrap-server", "localhost:9092" ]
+      interval: 10s
+      timeout: 10s
+      retries: 10
+      start_period: 30s
+    networks:
+      - app_net
+
+  gateway:
+    build:
+      context: ./gateway
+    container_name: gateway
+    ports:
+      - "8000:8000"
+    environment:
+      GATEWAY_API_KEY: "client-secret-key"
+      DISPATCHER_PROXY_HOST: envoy
+      DISPATCHER_PROXY_PORT: "50051"
+      DISPATCHER_API_KEY: "dispatcher-secret-key"
+    depends_on:
+      - envoy
+    networks:
+      - app_net
+
+
+
+  envoy:
+    image: envoyproxy/envoy:v1.32.6
+    container_name: envoy
+    volumes:
+      - ./envoy/envoy.yaml:/etc/envoy/envoy.yaml:ro
+    command: ["envoy", "-c", "/etc/envoy/envoy.yaml", "--log-level", "info"]
+    ports:
+      - "50051:50051"   # Gateway - Envoy - Dispatcher
+      - "50052:50052"   # Dispatcher - Envoy - Worker
+      - "9901:9901"     # admin UI
+    depends_on:
+      - dispatcher
+      - worker
+    networks:
+      - app_net
+
+
+  dispatcher:
+    build:
+      context: ./dispatcher
+    container_name: dispatcher
+    environment:
+      DISPATCHER_PORT: "50051"
+      DISPATCHER_API_KEY: "dispatcher-secret-key"
+      WORKER_PROXY_HOST: envoy
+      WORKER_PROXY_PORT: "50052"
+      WORKER_API_KEY: "worker-secret-key"
+      DISPATCHER_LOG: "/logs/dispatcher_logs.jsonl"
+      KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+    expose:
+      - "50051"
+    depends_on:
+      kafka:
+        condition: service_healthy
+    volumes:
+      - ./logs:/logs
+    networks:
+      - app_net
+
+  worker:
+    build:
+      context: ./worker
+    container_name: worker
+    environment:
+      WORKER_PORT: "50052"
+      WORKER_API_KEY: "worker-secret-key"
+      KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+      WORKER_LOG: "/logs/worker_logs.jsonl"
+    expose:
+      - "50052"
+    depends_on:
+      kafka:
+        condition: service_healthy
+    volumes:
+      - ./logs:/logs
+    networks:
+      - app_net
+
+  redis:
+    image: redis:7
+    container_name: redis
+    ports:
+      - "6379:6379"
+    networks:
+      - app_net
+
+  materializer:
+    build:
+      context: ./materializer
+    container_name: materializer
+    environment:
+      KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+      REDIS_URL: redis://redis:6379/0
+    depends_on:
+      kafka:
+        condition: service_healthy
+      redis:
+        condition: service_started
+    networks:
+      - app_net
+
+  process-manager:
+    build:
+      context: ./process_manager
+    container_name: process-manager
+    environment:
+      KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+    depends_on:
+      kafka:
+        condition: service_healthy
+    networks:
+      - app_net
+
+
+networks:
+  app_net:
+    driver: bridge
